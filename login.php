@@ -10,68 +10,69 @@ if ($_GET["logout"] == 1 AND $_SESSION['id']) {
 
 include("connection.php");
 
-    if($_POST['submit'] == "Sign Up") {
-        require "connection.php";
+if($_POST['submit'] == "Sign Up") {
+    require "connection.php";
         
-        $email = $_POST['email'];
-        $password = $_POST['password'];
-        $null = "";
+    $email = $_POST['email'];
+    $password = $_POST['password'];
+    $diary = "";
         
-        if(!$email) {
-            $error .= "<br/>請輸入您的郵箱。";
-        } else if(!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $error .= "<br/>請輸入有效的郵箱地址。";
-        }
+    if(!$email) {
+        $error .= "<br/>請輸入您的郵箱。";
+    } else if(!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error .= "<br/>請輸入有效的郵箱地址。";
+    }
 
-        if(!$password) {
-            $error .= "<br/>請輸入您的密碼。";
-        } else {
-            if(strlen($password) < 8) {
+    if(!$password) {
+        $error .= "<br/>請輸入您的密碼。";
+    } else {
+        if(strlen($password) < 8) {
                 $error .= "<br/>請至少輸入8位字元。";
-            }
-            if(!preg_match('`[A-Z]`', $password)) {
+        }
+        if(!preg_match('`[A-Z]`', $password)) {
                 $error .= "<br/>請輸入包含一個大寫字母";
-            }
         }
+    }
 
-        if($error) {
-            $error =  "註冊時有些錯誤: ". $error;
-        } else {
+    if($error) {
+        $error =  "註冊時有些錯誤: ". $error;
+    } else {
             
-            $query = "SELECT email FROM users WHERE email=?";
-            $statement = mysqli_stmt_init($connection);
-            if(!mysqli_stmt_prepare($statement, $query)) {
-                $error =  "SQL ERROR 1"; 
-            } else {
-                mysqli_stmt_bind_param($statement, "s", $email);
-                mysqli_stmt_execute($statement);
-                mysqli_stmt_store_result($statement);
-                $resultCeck = mysqli_stmt_num_rows($statement);
-                if($resultCeck > 0) {
-                    $error =  "此帳號已經存在，請問是否想登入呢?"; 
+        $query = "SELECT email FROM users WHERE email=?";
+        $statement = mysqli_stmt_init($connection);
+        if(!mysqli_stmt_prepare($statement, $query)) {
+            $error =  "SQL ERROR 1"; 
+        } else {
+            mysqli_stmt_bind_param($statement, "s", $email);
+            mysqli_stmt_execute($statement);
+            mysqli_stmt_store_result($statement);
+            $resultCeck = mysqli_stmt_num_rows($statement);
+            if($resultCeck > 0) {
+                $error =  "此帳號已經存在，請問是否想登入呢?"; 
 
-                }else {
-                    $query = "INSERT INTO users  (email, password, diary) VALUES (?,?,?)"; 
-                    $statement = mysqli_stmt_init($connection);
-                    if(!mysqli_stmt_prepare($statement, $query)) {
-                        $error =  "SQL ERROR 2";
-                    } else {
-                        $hashedPwd = password_hash($password, PASSWORD_DEFAULT);
+            }else {
+                $query = "INSERT INTO users  (email, password, diary) VALUES (?,?,?)"; 
+                $statement = mysqli_stmt_init($connection);
+                if(!mysqli_stmt_prepare($statement, $query)) {
+                    $error =  "SQL ERROR 2";
+                } else {
+                    $hashedPwd = password_hash($password, PASSWORD_DEFAULT);
 
-                        mysqli_stmt_bind_param($statement, "sss",$email, $hashedPwd,$null);
-                        mysqli_stmt_execute($statement);
-                        mysqli_stmt_store_result($statement);
-                        
-                        header("Location: mainpage.php"); 
-                        exit();
+                    mysqli_stmt_bind_param($statement, "sss",$email, $hashedPwd,$diary);
+                    mysqli_stmt_execute($statement);
+                    mysqli_stmt_store_result($statement);
+                     $_SESSION['id'] = mysqli_insert_id($connection);
+                    header("Location: mainpage.php"); 
+                    exit();
 
-                    }
+                }
             }
 
         }
     }
-    }
-    if($_POST['submit'] == "Log In") {
+}
+
+if($_POST['submit'] == "Log In") {
         require "connection.php";
         
         $loginemail = $_POST["loginemail"];
